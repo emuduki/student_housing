@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head> 
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Housing Portal</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+        
+        <style>
+            body {
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                padding:0;
+                margin: 0;
+            }
+            .navbar-brand img {
+            vertical-align: middle;
+            }
+
+            .navbar {
+            transition: all 0.3s ease;
+            }
+
+            .nav-link {
+            color: #333 !important;
+            margin: 0 10px;
+            }
+
+            .nav-link:hover {
+            color: #007bff !important;
+            }
+
+            .btn-custom-red { /* Custom red button style based on image */
+                background-color: #dc3545 !important;
+                border-color: #dc3545 !important;
+                color: #fff !important;
+            }
+            .btn-custom-red:hover {
+                background-color: #c82333 !important;
+                border-color: #c82333 !important;
+            }
+
+            .btn-danger {
+            border-radius: 20px;
+            }
+
+            /* Add Property button style */
+            .add-property-btn {
+                background-color: #dc3545; /* Bootstrap danger */
+                color: #fff;
+                padding: 8px 14px;
+                border-radius: 20px;
+                text-decoration: none;
+                display: inline-block;
+                font-weight: 600;
+            }
+            .add-property-btn:hover, .add-property-btn:focus {
+                background-color: #c82333;
+                color: #fff;
+                text-decoration: none;
+            }
+
+            .hero-section {
+                position: relative;
+                height: calc(110vh - 70px);
+                width: 100%;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                text-align: center;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background:linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                url('uploads/pexels-vince-2227832.jpg') center/cover no-repeat;
+            
+            }
+            .hero-section h1 {
+                font-size: 3rem;
+                font-weight: 700;
+                color: #fff;
+                margin-bottom: 15px;
+                }
+            .hero-section p {
+                font-size: 1.25rem;
+                color: #f8f9fa;
+                margin: 0px;
+                }
+                            
+            /* Specific Modal Styling for the Sign In Pop-up */
+            .login-modal-image {
+                /* Make sure the image on the left covers the space */
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: var(--bs-modal-border-radius);
+            }
+            .custom-login-modal .modal-dialog {
+                max-width: 750px;   /* Increased from 700px */
+                margin-top: 90px;   /* Keeps below navbar */
+                }
+            .custom-login-modal .modal-content {
+                max-height: 75vh;   /* Slightly shorter so it doesn’t climb too high */
+                }
+                            /* Styling the login box from the image */
+            .login-box-content {
+                padding: 1.5rem !important;
+            }
+            /* Custom styling for the specific red login button */
+            .login-box-content .btn-custom-red {
+                border-radius: 0.375rem !important; /* Match standard form control rounded corners */
+                padding: 0.75rem 1rem;
+                font-size: 1.1rem;
+                font-weight: 600;
+                width: 100%; /* Make it full width like in the image */
+            }
+            /* Hiding the default close button for the custom layout */
+            .login-box-content .btn-close {
+                display: none;
+            }
+            /* Styling for the Register/Sign In text link area */
+            .register-link-area {
+                margin-top: 1rem;
+                text-align: right;
+            }
+            .custom-login-modal .modal-dialog {
+            max-width: 700px;
+            margin-top: 80px;
+            }
+            .custom-login-modal .modal-content {
+            max-height: 80vh; /* prevent it from covering the whole screen */
+            overflow-y: auto;
+            border-radius: 12px; /* smoother edges */
+            }
+
+            .d-flex.align-items-center.justify-content-between.mt-3 > * {
+                flex: 1;
+                text-align: center;
+                }
+            /* Grey box for the Register section under Login button */
+            .register-box {
+            background-color: #f1f1f1;
+            padding: 8px 16px;
+            margin-top: 15px;
+            margin-right: 10px;
+            border-radius: 6px;
+            text-align: center;
+            flex: 1;  
+            }
+            .register-box a {
+                color: #333;
+                font-weight: 600;
+                text-decoration: none;
+                }
+            .register-box a:hover {
+            color: #007bff;
+            }
+            .lost-password {
+            font-weight: 700;       /* ← makes it bold */
+            text-decoration: none;
+            color: #6c757d; 
+            flex: 1; 
+            text-align: center;       
+            }
+
+            .lost-password:hover {
+            text-decoration: underline;
+            color: #101010;         /* blue on hover */
+            }
+            .d-flex.align-items-center.justify-content-between.mt-3 {
+            gap: 10px;            
+            }
+            .search-box {
+            background-color:#ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            max-width: 1000px;
+            margin: 0 auto;
+            }
+            .btn-success {
+            background-color: #dc3545;
+            border: none;
+            transition: background-color 0.3s ease;
+            }
+
+
+            .btn-outline-secondary {
+            transition: all 0.3s ease;
+            }
+
+            .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: #fff;
+            }
+            .search-box .form-control,
+            .search-box .form-select {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            height: 45px;
+            font-size: 0.95rem;
+            }
+
+            .search-box .form-control:focus,
+            .search-box .form-select:focus {
+                box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+                border-color: #dc3545;
+            }
+            .search-box .btn {
+            height: 45px;
+            font-size: 0.95rem;
+            }
+            .search-box .btn-custom-red {
+            padding: 10px;
+            font-weight: 600;
+            border-radius: 8px;
+            }
+            /* Recent Listed Properties Section */
+            .recent-properties {
+            background-color: #f8f9fa;
+            }
+
+            .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #222;
+            }
+
+            .section-subtitle {
+            font-size: 1rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+            }
+
+            .property-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+            }
+
+            .property-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            }
+
+            .property-info {
+            padding: 15px;
+            text-align: left;
+            }
+
+            .property-info h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            }
+
+            .property-info .price {
+            color: #dc3545;
+            font-weight: 700;
+            }
+
+            .recent-properties,
+            .why-choose-us {
+            padding: 80px 0;
+            }
+
+            .why-choose-us {
+                background-color: #f9f9f9;
+                padding: 80px 0;
+                text-align: center;
+                }
+
+            .why-choose-us h2 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            color: #222;
+            font-weight: 700;
+            }
+
+            .why-choose-us .intro-text {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 60px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            }
+
+            .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            }
+
+            .feature-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .feature-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            }
+
+            .feature-box h3 {
+            color: #007bff;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            }
+
+            .feature-box p {
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.6;
+            }
+
+
+        </style>
+
+    </head>
+    <body>
+        <div class="modal fade custom-login-modal" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-12 col-md-5 d-none d-md-block">
+                            <img src="uploads/pexels-huy-phan-316220-2826787.jpg" alt="Welcome" class="login-modal-image">
+                        </div>
+
+                        <div class="col-12 col-md-7 login-box-content">
+                            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                            <form action="auth/login.php" method="POST">
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person me-2" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.284 10 8 10c-2.28 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+                                    <label class="form-label mb-0">Email</label>
+                                    </div>
+                                    <input type="email" name="email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock me-2" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm-1 0a1 1 0 0 0-1 1v4h4V2a1 1 0 0 0-1-1H7zM.5 9a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1H.5zm0 2a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1H.5z"/></svg>
+                                    <label class="form-label mb-0">Password</label>
+                                    </div>
+                                    <input type="password" name="password" class="form-control" required>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">
+                                            Remember Me
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-custom-red">Login</button>
+                                
+                            <div class="d-flex align-items-center justify-content-between mt-3">
+                            <div class="register-box mb-0">
+                                <a href="register.html">Register</a>
+                            </div>
+                            <a href="#" class="text-muted small lost-password" onclick="event.preventDefault();">Lost your Password?</a>
+                            </div>
+
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="index.html">
+                <img src="#" alt="Logo" height="35" class="me-2" onerror="this.style.display='none'">
+                <span class="d-none d-sm-inline">HousingPortal</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-semibold" aria-current="page" href="index.html">Home</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            Login
+                        </a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn add-property-btn" href="houses/add_house.php">Add Property</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <div class="container">
+            <h1>Search Your Next Home</h1>
+            <p>Find new & featured property located in your local city.</p>
+
+
+        <div class="search-box mt-4">
+            <form class="row g-3 justify-content-center" action="search_results.html" method="GET">
+                <!--City/ Street-->
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="City / Street" placeholder="City/Street" required>
+                </div>
+                <!-- Property Type -->
+                 <div class="col-md-3">
+                    <select class="form-select">
+                        <option selected>Property Type</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="hostel">Hostel</option>
+                        <option value="studio">Studio</option>
+                        <option value="villa">Villa</option>
+                    </select>
+                 </div>
+                 <!-- Price Range -->
+                  <div class="col-md-3">
+                    <select class="form-select">
+                        <option selected>Price Range</option>
+                        <option value="2500-3000">2,500 - 3,000</option>
+                        <option value="3000-4000">3,000 - 4,000</option>
+                        <option value="4000-5000">4,000 - 5,000"</option>
+                        <option value="5000-6000">5,000 - 6,000</option>
+                        <option value="6000+">Above 6,000</option>
+                    </select>
+                  </div>
+                  <!--Advanced Features-->
+                  <div class="col-md-2 text-center">
+                    <button type="button" class="btn btn-outline-secondary w-100">Advanced Search</button>
+                  </div>
+                  <!-- Search Button -->
+                <div class="col-md-1 text-center">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+                </div>
+
+            </form>
+        </div>
+        </div>
+    </div>
+
+
+    <div class="container text-center">
+    <h2 class="section-title mb-3">Recent Listed Property</h2>
+    <p class="section-subtitle text-muted mb-5">
+      Discover our latest listed properties across prime locations.
+       Find your perfect home, apartment, or investment opportunity today.
+    </p>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="property-card shadow-sm">
+          <img src="uploads/pexels-allen-boguslavsky-1344061-34365793.jpg" alt="Property 1" class="property-img">
+          <div class="property-info">
+            <h5>Modern Apartment</h5>
+            <p class="text-muted">Nairobi, Kenya</p>
+            <span class="price">Ksh6,200 / month</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="property-card shadow-sm">
+          <img src="uploads/pexels-heyho-8146318.jpg" alt="Property 2" class="property-img">
+          <div class="property-info">
+            <h5>Cozy Studio</h5>
+            <p class="text-muted">Kisumu, Kenya</p>
+            <span class="price">Ksh5000 / month</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="property-card shadow-sm">
+          <img src="uploads/pexels-michaelgaultphotos-10450052.jpg" alt="Property 3" class="property-img">
+          <div class="property-info">
+            <h5>Spacious Villa</h5>
+            <p class="text-muted">Mombasa, Kenya</p>
+            <span class="price">Ksh4,500 / month</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="why-choose-us">
+    <div class="container">
+    <h2>Why Choose Us</h2>
+    <p class="intro-text">We provide full service at every step.</p>
+
+    <div class="features">
+      <div class="feature-box">
+        <h3>Wide Range of Properties</h3>
+        <p>We offer a diverse selection of properties — from affordable apartments to luxury homes — ensuring you find the perfect match for your needs and lifestyle.</p>
+      </div>
+
+      <div class="feature-box">
+        <h3>Trusted by Thousands</h3>
+        <p>Our clients trust us for our transparency, professionalism, and commitment to delivering reliable real estate solutions every day.</p>
+      </div>
+
+      <div class="feature-box">
+        <h3>Financing Made Easy</h3>
+        <p>We partner with top financial institutions to make property financing simple, fast, and stress-free for all our clients.</p>
+      </div>
+
+      <div class="feature-box">
+        <h3>We Are Near You</h3>
+        <p>Our local offices and agents are always ready to assist you — wherever you are — with expert guidance and personalized support.</p>
+      </div>
+    </div>
+  </div>
+  </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
