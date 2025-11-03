@@ -160,7 +160,7 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
                         </a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn add-property-btn" href="houses/add_house.php">Add Property</a>
+                        <a class="btn add-property-btn" href="../houses/add_house.php">Add Property</a>
                     </li>
                 </ul>
             </div>

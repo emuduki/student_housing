@@ -33,6 +33,32 @@ if ($role === 'admin') {
         }
         .card-img-top { height: 200px; object-fit: cover; }
         .card-hover:hover { transform: translateY(-5px); transition: 0.3s; }
+
+        .property-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #dee2e6;
+        }
+
+        .property-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .property-info {
+            padding: 15px;
+            text-align: left;
+        }
+
+        .property-info h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
     </style>
 </head>
 <body class="bg-light">

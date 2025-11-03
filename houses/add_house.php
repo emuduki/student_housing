@@ -1,47 +1,122 @@
-//in the upload gallery , when i select an image it places itself below the box and its not working.......<?php
+<?php
 session_start();
 include("../config/db.php");
 
-// Allow access to the add house form to anyone, but record landlord_id if user is signed in
-$current_user_id = $_SESSION['user_id'] ?? null;
-$current_role = strtolower(trim($_SESSION['role'] ?? ''));
-$show_unassigned_notice = false;
-
-if (!$current_user_id || ($current_role !== 'landlord' && $current_role !== 'admin')) {
-    $show_unassigned_notice = true;
+// Enforce login for adding a house
+if (!isset($_SESSION['user_id']) || !in_array(strtolower(trim($_SESSION['role'] ?? '')), ['landlord', 'admin'])) {
+    header("Location: ../login.html");
+    exit();
 }
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $title = $_POST["title"];
-    $description = $_POST["description"];
-    $location = $_POST["location"];
-    $rent = $_POST["rent"];
-    $landlord_id = $_SESSION["user_id"] ?? 0;
+    $landlord_id = $_SESSION['user_id']; // Now we are sure this is a valid ID
 
-    // Image upload
-    $imagePath = null;
-    if (!empty($_FILES["image"]["name"])) {
-        $targetDir = "../uploads/";
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
-        }
-        $fileName = time() . "_" . basename($_FILES["image"]["name"]);
-        $targetFile = $targetDir . $fileName;
+    $title       = $_POST['title'] ?? '';
+    $description = $_POST['description'] ?? ($_POST['detailed_description'] ?? '');
+    $address     = $_POST['address'] ?? '';
+    $city        = $_POST['city'] ?? '';
+    $state       = $_POST['state'] ?? '';
+    $zip         = $_POST['zip'] ?? '';
+    $area        = $_POST['area'] ?? '';
+    $status      = $_POST['status'] ?? 'available';
+    $type        = $_POST['type'] ?? '';
+    $location    = trim(implode(', ', array_filter([$address, $city, $state, $zip])));
 
-        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-            $imagePath = "uploads/" . $fileName;
-        }
+    $rentRaw = $_POST['rent'] ?? '';
+    $rent    = is_numeric($rentRaw) ? (float)$rentRaw : 0;
+
+    // Placeholder cover image (will be set after gallery upload)
+    $imagePath = '';
+
+  // Prepare the SQL insert safely
+    $stmt = $conn->prepare("
+        INSERT INTO houses 
+        (title, description, location, rent, images, landlord_id, status, type, area, address, city, state, zip, detailed_description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    if (!$stmt) {
+        die("SQL Prepare Failed: " . $conn->error);
     }
 
-    $stmt = $conn->prepare("INSERT INTO houses (landlord_id, title, description, location, rent, images) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssds", $landlord_id, $title, $description, $location, $rent, $imagePath);
+    $stmt->bind_param(
+    "sssdississssss",
+    $title,
+    $description,
+    $location,
+    $rent,
+    $imagePath,
+    $landlord_id,
+    $status,
+    $type,
+    $area,
+    $address,
+    $city,
+    $state,
+    $zip,
+    $description
+);
 
-    if ($stmt->execute()) {
-        echo "<div class='alert alert-success text-center mt-3'>House added successfully!</div>";
+
+    if (!$stmt->execute()) {
+        echo "<div class='alert alert-danger text-center mt-3'>Error: " . htmlspecialchars($stmt->error) . "</div>";
     } else {
-        echo "<div class='alert alert-danger text-center mt-3'>Error: " . $stmt->error . "</div>";
+        $houseId = $stmt->insert_id;
+
+        // Handle image uploads if any
+        if (!empty($_FILES['gallery']['name'][0])) {
+            $uploadDir = "../uploads/houses/";
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $uploadedImages = [];
+
+            foreach ($_FILES['gallery']['tmp_name'] as $key => $tmp_name) {
+                $fileName = time() . "_" . basename($_FILES['gallery']['name'][$key]);
+                $targetFile = $uploadDir . $fileName;
+
+                if (move_uploaded_file($tmp_name, $targetFile)) {
+                    $uploadedImages[] = "uploads/houses/" . $fileName;
+                }
+            }
+
+            if (!empty($uploadedImages)) {
+                // Update main image in the house table
+                $mainImage = $uploadedImages[0];
+                $updateStmt = $conn->prepare("UPDATE houses SET images = ? WHERE id = ?");
+                $updateStmt->bind_param("si", $mainImage, $houseId);
+                $updateStmt->execute();
+
+                // Ensure house_images table exists, then persist all image paths
+                $conn->query(
+                    "CREATE TABLE IF NOT EXISTS house_images (\n" .
+                    "  id INT AUTO_INCREMENT PRIMARY KEY,\n" .
+                    "  house_id INT NOT NULL,\n" .
+                    "  image_path VARCHAR(255) NOT NULL,\n" .
+                    "  sort_order INT DEFAULT 0,\n" .
+                    "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" .
+                    "  INDEX (house_id),\n" .
+                    "  CONSTRAINT fk_house_images_house FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE CASCADE\n" .
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                );
+
+                $imgStmt = $conn->prepare("INSERT INTO house_images (house_id, image_path, sort_order) VALUES (?, ?, ?)");
+                $order = 0;
+                foreach ($uploadedImages as $imgPath) {
+                    $imgStmt->bind_param("isi", $houseId, $imgPath, $order);
+                    $imgStmt->execute();
+                    $order++;
+                }
+                $imgStmt->close();
+            }
+        }
+
+        echo "<div class='alert alert-success text-center mt-3'>✅ House added successfully!</div>";
     }
+
+    $stmt->close();
 }
 ?>
 
@@ -52,194 +127,203 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <title>Add House</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    :root { --nav-h: 70px; }
+          :root { --nav-h: 70px; }
 
-    body {
-      background-color: #f8f9fa;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding-top: var(--nav-h);
-      overflow-x: hidden;
-    }
+          body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: var(--nav-h);
+            overflow-x: hidden;
+          }
 
-    .navbar {
-      transition: all 0.3s ease;
-      z-index: 2000;
-    }
+          .navbar {
+            transition: all 0.3s ease;
+            z-index: 2000;
+          }
 
-    .nav-link { color: #333 !important; margin: 0 10px; }
-    .nav-link:hover { color: #007bff !important; }
+          .nav-link { color: #333 !important; margin: 0 10px; }
+          .nav-link:hover { color: #007bff !important; }
 
-    .add-property-btn {
-      background-color: #dc3545;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 20px;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .add-property-btn:hover { background-color: #c82333; color: #fff; }
+          .add-property-btn {
+            background-color: #dc3545;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+          }
+          .add-property-btn:hover { background-color: #c82333; color: #fff; }
 
-    /* Hero Section */
-    .hero-section {
-      position: relative;
-      height: 300px;
-      width: 100%;
-      margin: 0;
-      margin-top: calc(var(--nav-h) * -1);
-      padding-top: var(--nav-h);
-      background: url('../uploads/pexels-einfoto-2179603.jpg') center/cover no-repeat;
-      overflow: hidden;
-    }
-    .hero-section .overlay {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.35);
-    }
-    .hero-section .hero-content {
-      position: relative;
-      z-index: 2;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      color: #fff;
-      text-align: left;
-      padding-left: 3rem;
-    }
-    .hero-section .hero-content h1 {
-      font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-    }
-    .hero-section .hero-content p {
-      font-size: 1.1rem;
-      margin: 0;
-    }
+          /* Hero Section */
+          .hero-section {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 0;
+            margin-top: calc(var(--nav-h) * -1);
+            padding-top: var(--nav-h);
+            background: url('../uploads/pexels-einfoto-2179603.jpg') center/cover no-repeat;
+            overflow: hidden;
+          }
+          .hero-section .overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.35);
+          }
+          .hero-section .hero-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-align: left;
+            padding-left: 3rem;
+          }
+          .hero-section .hero-content h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+          }
+          .hero-section .hero-content p {
+            font-size: 1.1rem;
+            margin: 0;
+          }
 
-    /* --- Basic Information --- */
-    .basic-head {
-      font-weight: 700;
-      font-size: 1.3rem;
-      color: #333;
-      margin-top: 1rem;
-      border-left: 4px;
-      padding-left: 10px;
-    }
+          /* --- Basic Information --- */
+          .basic-head {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #333;
+            margin-top: 1rem;
+            border-left: 4px;
+            padding-left: 10px;
+          }
 
-    .basic-info .form-label {
-      font-weight: 600;
-      color: #333;
-    }
+          .basic-info .form-label {
+            font-weight: 600;
+            color: #333;
+          }
 
-    .basic-info .form-control,
-    .basic-info .form-select {
-      border-radius: 8px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      transition: border-color 0.3s ease;
-    }
+          .basic-info .form-control,
+          .basic-info .form-select {
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease;
+          }
 
-    .basic-info .form-control:focus,
-    .basic-info .form-select:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
-    }
-    .location-info .form-label {
-  font-weight: 600;
-  color: #333;
-}
+          .basic-info .form-control:focus,
+          .basic-info .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+          }
+          .location-info .form-label {
+        font-weight: 600;
+        color: #333;
+      }
 
-.location-info .form-control {
-  border-radius: 8px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  transition: border-color 0.3s ease;
-}
+          .location-info .form-control {
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease;
+          }
 
-.location-info .form-control:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
-}
+          .location-info .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+          }
 
-.property-details .form-label {
-  font-weight: 600;
-  color: #333;
-}
+          .property-details .form-label {
+            font-weight: 600;
+            color: #333;
+          }
 
-.property-details .form-select {
-  border-radius: 8px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  transition: border-color 0.3s ease;
-}
+          .property-details .form-select {
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease;
+          }
 
-.property-details .form-select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
-}
+          .property-details .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+          }
 
-.features-columns {
-  column-count: 3; /* Creates 3 neat vertical columns */
-  column-gap: 40px; /* space between columns */
-}
+          .features-columns {
+            column-count: 3; /* Creates 3 neat vertical columns */
+            column-gap: 40px; /* space between columns */
+          }
 
-.features-columns .form-check {
-  break-inside: avoid; /* keeps checkboxes from splitting between columns */
-  margin-bottom: 8px;
-}
-/* Bigger gallery drop box */
-.gallery-box {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  padding: 30px;
-  height: 350px; /* Increased height */
-  background-color: #f8f9fa;
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+          .features-columns .form-check {
+            break-inside: avoid; /* keeps checkboxes from splitting between columns */
+            margin-bottom: 8px;
+          }
+          /* Bigger gallery drop box */
+          .gallery-box {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            height: 350px; /* Increased height */
+            background-color: #f8f9fa;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
 
-/* Centered inner content */
-.gallery-content {
-  width: 100%;
-  text-align: center;
-}
+          .cloud-icon {
+            width: 48px;
+            height: 48px;
+            color: #6c757d;
+            margin-bottom: 8px;
+          }
 
-/* Logo box inside gallery */
-.logo-box {
-  border: 1px dashed #aaa;
-  border-radius: 6px;
-  padding: 15px;
-  width: 220px;
-  background-color: #fff;
-  transition: background 0.3s ease;
-}
+          .hint-text { color: #6c757d; font-size: 0.95rem; }
 
-.logo-box:hover {
-  background: #f0f0f0;
-}
+          /* Centered inner content */
+          .gallery-content {
+            width: 100%;
+            text-align: center;
+          }
 
-/* Logo image preview */
-.logo-preview {
-  max-height: 100px;
-  display: none;
-  margin-top: 10px;
-  border-radius: 5px;
-}
+          /* Logo box inside gallery */
+          .logo-box {
+            border: 1px dashed #aaa;
+            border-radius: 6px;
+            padding: 15px;
+            width: 220px;
+            background-color: #fff;
+            transition: background 0.3s ease;
+          }
 
-/* Gallery preview images */
-#galleryPreview img {
-  width: 120px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
+          .logo-box:hover {
+            background: #f0f0f0;
+          }
+
+          /* Logo image preview */
+          .logo-preview {
+            max-height: 100px;
+            display: none;
+            margin-top: 10px;
+            border-radius: 5px;
+          }
+
+          /* Gallery preview images */
+          #galleryPreview img {
+            width: 120px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+          }
 
 
-/* Specific Modal Styling for the Sign In Pop-up */
+          /* Specific Modal Styling for the Sign In Pop-up */
             .login-modal-image {
                 /* Make sure the image on the left covers the space */
                 width: 100%;
@@ -321,6 +405,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             .d-flex.align-items-center.justify-content-between.mt-3 {
             gap: 10px;            
+            }
+            .gallery-box {
+              margin-top: 16px;
+              border: 2px dashed #ccc;
+              border-radius: 8px;
+              background-color: #f9f9f9;
+              padding: 16px;
+              position: relative;
+              height: 160px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              cursor: pointer;
+              transition: border-color 0.2s ease-in-out;
+            }
+
+            .gallery-box.dragover {
+              border-color: #007bff;
+              background-color: #eef7ff;
+            }
+
+            #galleryPreview {
+              display: flex;
+              flex-wrap: wrap;
+              justify-content: center;
+              gap: 10px;
+              margin-top: 10px;
+            }
+            .cloud-icon { width: 32px; height: 32px; margin-bottom: 4px; }
+            .gallery-content .fw-semibold { font-size: 0.95rem; }
+            .hint-text { font-size: 0.85rem; 
+            }
+            #galleryPreview img {
+              width: 100px;
+              height: 80px;
+              object-fit: cover;
+              border-radius: 5px;
+              border: 1px solid #ddd;
+              box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
             }
 
 
@@ -420,15 +545,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </div>
 </section>
 
-<?php if ($show_unassigned_notice): ?>
-<div class="container mt-3">
-  <div class="alert alert-warning">
-    If you don't have an account you can create one by 
-    <a href="../register.html">Click Here</a>.
-  </div>
-</div>
-<?php endif; ?>
-
 <!-- FORM -->
 <div class="container mt-4 mb-5">
   <form method="POST" enctype="multipart/form-data">
@@ -471,22 +587,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
     </div>
 
-    <!-- Gallery + Logo -->
-    <h5 class="mt-4">Gallery</h5>
-    <div class="mb-3">
-      <label class="form-label">Upload Gallery (multiple) and Logo</label>
-      <div id="galleryDrop" class="gallery-box text-center" role="button" style="height:130px; padding:12px;">
-        <div class="gallery-content">
-          <br>
-          <small class="text-muted">Drag & drop to upload image</small>
-          <input type="file" name="gallery[]" id="galleryInput" accept="image/*" multiple class="d-none">
-          <input type="file" name="logo" id="logoInput" accept="image/*" class="d-none">
-          <div class="mt-2"><button type="button" id="uploadLogoBtn" class="btn btn-sm btn-outline-secondary mt-2">Upload Image</button></div>
-        </div>
-      </div>
-      <div id="galleryPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
-      <div class="mt-2"><img id="logoPreview" class="logo-preview" src="" alt="Logo preview" style="display:none;"></div>
-    </div>
+   <!-- 🏠 Image Upload Box -->
+  <div id="galleryDrop" class="gallery-box">
+  <div class="gallery-content">
+    <svg class="cloud-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6 19a4 4 0 0 1-.2-8A5.5 5.5 0 0 1 17 9.5c0 .17 0 .34-.02.5H17a4.5 4.5 0 1 1 0 9H6zm6-9.5a.75.75 0 0 1 .75.75V15l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3A.75.75 0 0 1 9.53 13.3L11.25 15V10.25A.75.75 0 0 1 12 9.5z"/>
+    </svg>
+    <div class="fw-semibold">Drop images here or click to browse</div>
+    <div class="hint-text">You can also paste images (Ctrl+V) or drag & drop</div>
+    <input type="file" name="gallery[]" id="galleryInput" accept="image/*" multiple class="d-none">
+    <input type="hidden" name="primary_index" id="primaryIndex" value="0">
+  </div>
+  </div>
+  <div id="galleryPreview"></div>
+
 
 <!-- Location -->
 <h5 class="mt-4 basic-head">Location</h5>
@@ -512,7 +626,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <h5 class="mt-4">Detailed Information</h5>
 <div class="mb-3">
   <label class="form-label">Description</label>
-  <textarea name="detailed_description" class="form-control" rows="4"></textarea>
+  <textarea name="description" class="form-control" rows="4"></textarea>
 </div>
 
 <div class="row g-3 mb-3 property-details">
@@ -579,46 +693,98 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Gallery & logo preview + drag/drop
 (function(){
   const galleryDrop = document.getElementById('galleryDrop');
   const galleryInput = document.getElementById('galleryInput');
   const galleryPreview = document.getElementById('galleryPreview');
-  const logoInput = document.getElementById('logoInput');
-  const logoPreview = document.getElementById('logoPreview');
-  const uploadLogoBtn = document.getElementById('uploadLogoBtn');
+  const primaryIndexInput = document.getElementById('primaryIndex');
+  let filesArr = [];
 
-  function previewGalleryFiles(files){
+  function rebuildInputFromArray() {
+    const dt = new DataTransfer();
+    filesArr.forEach(f => dt.items.add(f));
+    galleryInput.files = dt.files;
+  }
+
+  function renderPreview(){
     galleryPreview.innerHTML = '';
-    Array.from(files).slice(0,8).forEach(f=>{
+    filesArr.forEach((f, idx) => {
       if (!f.type.startsWith('image/')) return;
+      const wrap = document.createElement('div');
+      wrap.style.display = 'inline-flex';
+      wrap.style.flexDirection = 'column';
+      wrap.style.alignItems = 'center';
+      wrap.style.margin = '6px';
+
       const img = document.createElement('img');
       img.src = URL.createObjectURL(f);
-      img.style.width = '120px'; img.style.height = '100px'; img.style.objectFit = 'cover'; img.className = 'rounded';
-      galleryPreview.appendChild(img);
+      img.style.width = '120px';
+      img.style.height = '100px';
+      img.style.objectFit = 'cover';
+      img.className = 'rounded border';
+      wrap.appendChild(img);
+
+      const controls = document.createElement('div');
+      controls.className = 'mt-1';
+
+      const primaryBtn = document.createElement('button');
+      primaryBtn.type = 'button';
+      const isPrimary = idx === Number(primaryIndexInput.value);
+      primaryBtn.className = 'btn btn-sm ' + (isPrimary ? 'btn-success' : 'btn-outline-success');
+      primaryBtn.textContent = isPrimary ? 'Primary' : 'Make Primary';
+      primaryBtn.onclick = () => { primaryIndexInput.value = String(idx); renderPreview(); };
+      controls.appendChild(primaryBtn);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-sm btn-outline-danger ms-2';
+      removeBtn.textContent = 'Remove';
+      removeBtn.onclick = () => {
+        filesArr.splice(idx, 1);
+        let p = Number(primaryIndexInput.value);
+        if (idx === p) p = 0; else if (idx < p) p = Math.max(0, p - 1);
+        primaryIndexInput.value = String(p);
+        rebuildInputFromArray();
+        renderPreview();
+      };
+      controls.appendChild(removeBtn);
+
+      wrap.appendChild(controls);
+      galleryPreview.appendChild(wrap);
     });
   }
 
-  if (galleryDrop){
-    galleryDrop.addEventListener('click', ()=> galleryInput.click());
-    ['dragenter','dragover'].forEach(e=> galleryDrop.addEventListener(e, ev=>{ ev.preventDefault(); galleryDrop.classList.add('dragover'); }));
-    ['dragleave','drop'].forEach(e=> galleryDrop.addEventListener(e, ev=>{ ev.preventDefault(); galleryDrop.classList.remove('dragover'); }));
-    galleryDrop.addEventListener('drop', ev=>{
-      const files = ev.dataTransfer.files;
-      galleryInput.files = files;
-      previewGalleryFiles(files);
-    });
-    galleryInput.addEventListener('change', e=> previewGalleryFiles(e.target.files));
-  }
+  // Click to upload
+  galleryDrop.addEventListener('click', ()=> galleryInput.click());
 
-  uploadLogoBtn.addEventListener('click', ()=> logoInput.click());
-  logoInput.addEventListener('change', function(e){
-    const f = e.target.files[0];
-    if (!f) return;
-    if (!f.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = function(ev){ logoPreview.src = ev.target.result; logoPreview.style.display = 'block'; }
-    reader.readAsDataURL(f);
+  // Drag & drop behavior
+  ['dragenter','dragover'].forEach(e=> 
+    galleryDrop.addEventListener(e, ev=>{
+      ev.preventDefault();
+      galleryDrop.classList.add('dragover');
+    })
+  );
+  ['dragleave','drop'].forEach(e=> 
+    galleryDrop.addEventListener(e, ev=>{
+      ev.preventDefault();
+      galleryDrop.classList.remove('dragover');
+    })
+  );
+
+  // Drop event
+  galleryDrop.addEventListener('drop', ev=>{
+    const files = ev.dataTransfer.files;
+    filesArr = Array.from(files);
+    primaryIndexInput.value = '0';
+    rebuildInputFromArray();
+    renderPreview();
+  });
+
+  // When user selects via dialog
+  galleryInput.addEventListener('change', e=>{
+    filesArr = Array.from(e.target.files);
+    primaryIndexInput.value = '0';
+    renderPreview();
   });
 })();
 </script>
