@@ -130,30 +130,12 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
 
         /*main content */
         .main-content {
-            margin-left: 200px;
-            padding: 90px 25px 25px;
+            padding: 20px 40px; /* space on top/bottom and left/right */
+            background-color: #f8f9fa; /* optional: light background for contrast */
+            min-height: 100vh;
+            box-sizing: border-box; /* ensures padding is included in width */
+            transition: all 0.3s ease;
         }
-
-        .profile-section h4 {
-            color: #495057;
-        }
-
-        .profile-section p {
-            margin-bottom: 10px;
-        }
-
-        /* Main Content */
-        .main-content {
-        margin-left: 320px;
-        padding: 90px 40px 40px;
-        background-color: #ffffff; /* solid white background */
-        border-radius: 12px;
-        border: 1px solid #dee2e6;
-        box-shadow: 0 4 20px rgba(0,0,0,0.15);
-        min-height: 100vh; /* ensure it covers the full height */
-    }
-
-
 
 
 </style>
@@ -227,10 +209,9 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
 </div>
 
 <!-- Main Content -->
- <div class="content" id="content">
+<div class="main-content" id="content">
     <!--Section content will be loaded here-->
- </div>
-
+</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
@@ -247,7 +228,7 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
         fetch(`sections/${section}.php`)
             .then(res => res.text())
             .then(html => {
-                document.getElementById("content").innerHTML = html;
+                document.getElementById("content").innerHTML = html; // This line is correct
 
                 // Update active link
                 document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
