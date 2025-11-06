@@ -43,6 +43,7 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
         padding-top: 20px 0;
         height: calc(100vh - 56px); /* full height minus navbar */
         position: fixed;
+        z-index: 1000;
         top: 56px; /* same height as navbar */
         left: 0;
         bottom: 0;
@@ -189,15 +190,15 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
         <li><a href="../houses/houses.php"><i class="bi bi-building me-2"></i>My Properties</a></li>
         <li><a href="../houses/manage_reservations.php"><i class="bi bi-calendar me-2"></i>Reservations</a></li>
 
-        <li><a href="../houses/inquiries.php"><i class="bi bi-envelope me-2"></i>Inquiries</a></li>
-        <li><a href="../houses/analytics.php"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
+        <li><a href="javascript:void(0);" onclick="loadSection('inquiries')"><i class="bi bi-envelope me-2"></i>Inquiries</a></li>
+        <li><a href="javascript:void(0);" onclick="loadSection('analytics')"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
         <li><a href="../houses/income_reports.php"><i class="bi bi-cash-coin me-2"></i>Income Reports</a></li>
         <li><a href="../houses/availability.php"><i class="bi bi-calendar2-week me-2"></i>Availability</a></li>
 
         <!-- Divider line-->
         <hr class="my-3 mx-3">
 
-        <li><a href="../users/profile.php"><i class="bi bi-person me-2"></i>Profile</a></li>
+        <li><a href="javascript:void(0);" onclick="loadSection('profile')"><i class="bi bi-person me-2"></i>Profile</a></li>
     </ul>
 
     <div class="add-btn-container mt-auto">
@@ -213,6 +214,8 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
     <!--Section content will be loaded here-->
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     const sidebar = document.querySelector(".sidebar");
@@ -223,12 +226,41 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
         sidebar.classList.toggle("collapsed");
     });
 
+    // Initialize interactive behavior for injected sections (payment toggles, etc.)
+    function initializeInjectedContent() {
+        const select = document.getElementById('paymentMethodSelect');
+        if (!select) return; // no payment form present
+
+        const bankFields = document.getElementById('bankFields');
+        const mpesaFields = document.getElementById('mpesaFields');
+        const paypalFields = document.getElementById('paypalFields');
+        const cashFields = document.getElementById('cashFields');
+
+        function updatePaymentFields() {
+            const v = select.value;
+            if (bankFields) bankFields.classList.toggle('d-none', v !== 'Bank Transfer');
+            if (mpesaFields) mpesaFields.classList.toggle('d-none', v !== 'M-Pesa');
+            if (paypalFields) paypalFields.classList.toggle('d-none', v !== 'PayPal');
+            if (cashFields) cashFields.classList.toggle('d-none', v !== 'Cash');
+
+            if (bankFields) document.querySelectorAll('#bankFields input').forEach(i => i.required = (v === 'Bank Transfer'));
+            if (mpesaFields) document.querySelectorAll('#mpesaFields input').forEach(i => i.required = (v === 'M-Pesa'));
+            if (paypalFields) document.querySelectorAll('#paypalFields input').forEach(i => i.required = (v === 'PayPal'));
+        }
+
+        select.addEventListener('change', updatePaymentFields);
+        updatePaymentFields();
+    }
+
     // Load section dynamically
     function loadSection(section, el = null) {
         fetch(`sections/${section}.php`)
             .then(res => res.text())
             .then(html => {
                 document.getElementById("content").innerHTML = html; // This line is correct
+
+                // Initialize any scripts/behaviors for the injected HTML
+                try { initializeInjectedContent(); } catch (e) { console.error('init error', e); }
 
                 // Update active link
                 document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));

@@ -78,66 +78,59 @@ $revenue_growth = 0;
             display: flex;
             flex-direction: column;
             background-color: #f5f5f5;
+            padding-top: 56px;
         }
-        .stat-card {
-            background: #fff;
-            border-radius: 10px;
-            border: 1px solid #e9ecef;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 140px;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
+        .stat-card,
         .start-card {
             background: #fff;
             border-radius: 10px;
             border: 1px solid #e9ecef;
-            padding: 20px;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 140px;
+            min-height: 100px;
             width: 100%;
             transition: all 0.3s ease;
         }
-        .stat-card:hover {
+
+        .stat-card:hover,
+        .start-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .stat-card > div:first-child {
+
+        .stat-card > div:first-child,
+        .start-card > div:first-child {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
-        .stat-card > div:first-child > span {
+
+        .stat-card > div:first-child > span,
+        .start-card > div:first-child > span {
             font-size: 0.9rem;
             color: #666;
             font-weight: 500;
         }
-        .stat-card h4 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #333;
-            margin: 0 0 8px 0;
-        }
+
+        .stat-card h4,
         .start-card h4 {
-            font-size: 2rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: #333;
-            margin: 0 0 8px 0;
+            margin: 0 0 6px 0;
         }
+
         .icon-box {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             color: #0d6efd;
             opacity: 0.9;
         }
         .trend-up { 
             color: #28a745; 
-            font-size: 0.85rem; 
+            font-size: 0.75rem; 
             display: flex;
             align-items: center;
             gap: 4px;
@@ -148,7 +141,7 @@ $revenue_growth = 0;
         }
         .trend-down { 
             color: #dc3545; 
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -157,83 +150,133 @@ $revenue_growth = 0;
             content: "~";
             font-size: 0.9rem;
         }
+        .row.g-3.mb-4 {
+            margin-bottom: 2rem !important;  /* ⬅ gap before Quick Actions */
+        }
         .quick-actions-wrapper {
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 20px 24px;
+            padding: 24px 30px;
         }
         .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.25rem;
-            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.5rem;
         }
         .action-card {
-            border-radius: 10px;
+            flex: 1 1 22%;
+            min-width: 150px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 20px 10px;
             text-align: center;
-            padding: 18px 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .action-card:nth-child(1) {
-            background: #1e3a8a;
-        }
-        .action-card:nth-child(2) {
-            background: #6f42c1;
-        }
-        .action-card:nth-child(3) {
-            background: #28a745;
-        }
-        .action-card:nth-child(4) {
-            background: #fd7e14;
         }
         .action-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(0,0,0,0.2);
         }
+        
         .action-icon {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            color: #fff !important;
-        }
-        .action-card p {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 1.8rem;
+        }
+        /* only the icons get the colors */
+        .text-blue { background: #1e3a8a; }     
+        .text-purple { background: #6f42c1; }   
+        .text-green { background: #28a745; }   
+        .text-orange { background: #fd7e14; } 
+
+        .action-card p {
+            color: #333;
             font-weight: 600;
             margin-bottom: 3px;
         }
         .action-card small {
-            color: rgba(255,255,255,0.9);
-            font-size: 0.75rem;
+            color: #777;
+            font-size: 0.8rem;
         }
-       
-        .start-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+
+        /* Prevent cards from hovering above sidebar */
+        .stat-card,
+        .start-card,
+        .quick-actions-wrapper,
+        .action-card {
+            position: relative;
+            z-index: 1;
         }
-        .start-card > div:first-child {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
+
+        .stat-card:hover,
+        .start-card:hover,
+        .action-card:hover {
+            z-index: 1; /* stays below sidebar */
         }
-        .start-card > div:first-child > span {
-            font-size: 0.9rem;
-            color: #666;
+        .recent-reservations {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-top: 2rem;
+        }
+        .reservation-item {
+            transition: background-color 0.2s ease;
+        }
+        .reservation-item:hover {
+            background-color: #f9fafb;
+        }
+        .badge {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 500;
         }
+        .view-all-link {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color:  #000;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .view-all-link:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #000;
+            text-decoration: none;
+        }
+        .top-properties {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .property-item:hover {
+            background-color: #f9fafb;
+        }
+
     </style>
     </head>
 
     <body class="p-4">
 
-        <h4 class="fw-bold mb-4">Dashboard Overview</h4>
+        <h4 class="fw-bold mb-2">Landlord Dashboard </h4>
+        <p class="text-muted mb-4">Manage your properties and bookings</p>
 
         <!--Top Stat Cards-->
         <div class="row g-3 mb-4">
@@ -246,7 +289,7 @@ $revenue_growth = 0;
                     <h4><?php echo $total_houses; ?></h4>
                     <small class="trend-up"><?= $available_houses; ?> available</small>
                 </div>
-                <div class="start-card">
+                <div class="stat-card">
                     <div class="d-flex justify-content-between">
                         <span>Reserved</span>
                         <i class="bi bi-people icon-box"></i>
@@ -277,34 +320,127 @@ $revenue_growth = 0;
         </div>
 
         <!--Quick Actions-->
-        <h6 class="fw-bold mb-3">Quick Actions</h6>
         <div class="quick-actions-wrapper">
+            <h6 class="fw-bold mb-3">Quick Actions</h6>
             <div class="quick-actions">
-            <div class="action-card" onclick="window.location='../houses/add_house.php'">
-                <i class="bi bi-plus-square action-icon text-primary"></i>
+                <div class="action-card" onclick="window.location='../houses/add_house.php'">
+                <div class="action-icon text-blue">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
                 <p class="fw-semibold mb-0">Add New House</p>
                 <small>List a new property</small>
             </div>
-            
+
             <div class="action-card" onclick="window.location='../houses/analytics.php'">
-            <i class="bi bi-file-earmark-bar-graph action-icon text-purple"></i>
-            <p class="fw-semibold mb-0">View Reports</p>
-            <small>Generate analytics</small>
+                <div class="action-icon text-purple">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <p class="fw-semibold mb-0">View Reports</p>
+                <small>Generate analytics</small>
             </div>
 
             <div class="action-card" onclick="window.location='../houses/inquiries.php'">
-            <i class="bi bi-chat-dots-fill action-icon text-success"></i>
-            <p class="fw-semibold mb-0">Messages</p>
-            <small>Check inquiries</small>
+                <div class="action-icon text-green">
+                    <i class="bi bi-chat-dots-fill"></i>
+                </div>
+                <p class="fw-semibold mb-0">Messages</p>
+                <small>Check inquiries</small>
             </div>
 
             <div class="action-card" onclick="window.location='../houses/manage_reservations.php'">
-            <i class="bi bi-calendar-check action-icon text-warning"></i>
-            <p class="fw-semibold mb-0">Schedule</p>
-            <small>Manage bookings</small>
+                <div class="action-icon text-orange">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <p class="fw-semibold mb-0">Schedule</p>
+                <small>Manage bookings</small>
             </div>
             </div>
         </div>
         
+        <!--Recent Reservations-->
+        <div class="recent-reservations mt-4">
+            <h6 class="fw-bold mb-3">Recent Reservations</h6>
+
+            <?php
+            // Fetch the 3 most recent reservations for this landlord
+            $recent_reservations_query = $conn->query("
+                SELECT r.id,r.status, h.title AS house_title, u.name AS tenant_name 
+                FROM reservations r 
+                JOIN houses h ON r.house_id = h.id 
+                JOIN users u ON r.tenant_id = u.id 
+                WHERE h.landlord_id = $landlord_id 
+                ORDER BY r.created_at DESC 
+                LIMIT 3
+            ");
+            if ($recent_reservations_query && $recent_reservations_query->num_rows > 0):
+                while ($row = $recent_reservations_query->fetch_assoc()):
+                    $status = strtolower($row['status']);
+                    $status_class = ($status === 'confirmed') ? 'badge bg-success-subtle text-success' :
+                                    (($status === 'pending') ? 'badge bg-warning-subtle text-warning' :
+                                    (($status === 'cancelled') ? 'badge bg-danger-subtle text-danger' : 'badge bg-secondary-subtle text-secondary'));
+            ?>
+                <div class="reservation-item d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <strong><?= htmlspecialchars($row['tenant_name']) ?></strong><br>
+                        <small class="text-muted"><?= htmlspecialchars($row['house_title']) ?></small>
+                    </div>
+                    <span class="<?= $status_class ?> text-capitalize"><?= htmlspecialchars($status); ?></span>
+                    
+                </div>
+            <?php 
+                endwhile; 
+            else:
+                echo "<p class='text-muted fst-italic'>No recent reservations found.</p>";
+            endif;
+             ?>
+
+             <div class="text-center mt-3">
+                <a href="../houses/manage_reservations.php" class="view-all-link">
+                    View All Reservations
+                </a>
+             </div>
+        </div>
+
+        <!--Top Performing Properties - Placeholder for future-->
+        <div class="top-properties mt-4">
+            <h6 class="fw-bold mb-3">Top Performing Properties</h6>
+            <p class="text-muted fst-italic">Feature coming soon...</p>
+
+            <?php
+            // Fetch top 3 performing properties based on reservations
+            $top_properties_query = $conn->query("
+                SELECT h.title, COUNT(r.id) AS reservation_count, h.rent
+                FROM houses h 
+                LEFT JOIN reservations r ON h.id = r.house_id 
+                WHERE h.landlord_id = $landlord_id 
+                GROUP BY h.id 
+                ORDER BY reservation_count DESC 
+                LIMIT 3
+            "); // This query was missing h.rent
+
+            if ($top_properties_query && $top_properties_query->num_rows > 0):
+                while ($prop = $top_properties_query->fetch_assoc()):
+            ?>
+                <div class="property-item d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <strong><?= htmlspecialchars($prop['title']) ?></strong><br>
+                        <small class="text-muted"><?= (int)$prop['reservation_count'] ?> Reservations</small>
+                    </div>
+                <span class="fw-semibold">$<?= number_format($prop['rent']) ?>/mo</span>
+            </div>
+        <?php 
+                endwhile; 
+            else:
+                echo "<p class='text-muted fst-italic'>No property data available.</p>";
+            endif;
+             ?>
+
+             <div class="text-center mt-3">
+                <a href="../houses/analytics.php" class="view-all-link">
+                    View Analytics
+                </a>
+             </div>
+        </div>
+
     </body>
 </html>
