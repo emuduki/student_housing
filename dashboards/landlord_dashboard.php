@@ -137,6 +137,29 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
             box-sizing: border-box; /* ensures padding is included in width */
             transition: all 0.3s ease;
         }
+        .upload-box {
+            border: 2px dashed rgba(0,0,0,0.15);
+            border-radius: 12px;
+            padding: 32px;
+            background: rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .upload-box:hover {
+            border-color: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.05);
+        }
+
+        .drag-area input {
+            cursor: pointer;
+        }
+        
+        #addPropertyModal .modal-dialog {
+            max-width: 50%; /* Adjust as needed (e.g. 50%, 700px, etc.) */
+            margin: auto; /* Center the modal */
+        }
+       
 
 
 </style>
@@ -188,12 +211,12 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
     <ul class="nav flex-column mt-4">
         <li><a href="javascript:void(0);" class="active" onclick="loadSection('overview')"><i class="bi bi-house-door me-2"></i>Overview</a></li>
         <li><a href="../houses/houses.php"><i class="bi bi-building me-2"></i>My Properties</a></li>
-        <li><a href="../houses/manage_reservations.php"><i class="bi bi-calendar me-2"></i>Reservations</a></li>
+    <li><a href="javascript:void(0);" onclick="loadSection('manage_reservations')"><i class="bi bi-calendar me-2"></i>Reservations</a></li>
 
         <li><a href="javascript:void(0);" onclick="loadSection('inquiries')"><i class="bi bi-envelope me-2"></i>Inquiries</a></li>
         <li><a href="javascript:void(0);" onclick="loadSection('analytics')"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
-        <li><a href="../houses/income_reports.php"><i class="bi bi-cash-coin me-2"></i>Income Reports</a></li>
-        <li><a href="../houses/availability.php"><i class="bi bi-calendar2-week me-2"></i>Availability</a></li>
+        <li><a href="javascript:void(0);" onclick="loadSection('income_reports')"><i class="bi bi-cash-coin me-2"></i>Income Reports</a></li>
+        <li><a href="javascript:void(0);" onclick="loadSection('availability')"><i class="bi bi-calendar2-week me-2"></i>Availability</a></li>
 
         <!-- Divider line-->
         <hr class="my-3 mx-3">
@@ -202,7 +225,7 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
     </ul>
 
     <div class="add-btn-container mt-auto">
-        <a href="../houses/add_house.php" class="btn btn-primary">
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPropertyModal">
             <i class="bi bi-plus-lg me-1"></i>Add New House
         </a>
     </div>
@@ -213,6 +236,127 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
 <div class="main-content" id="content">
     <!--Section content will be loaded here-->
 </div>
+
+<div class="modal fade" id="addPropertyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0" style="border-radius: 14px;">
+            
+            <!-- Modal Header -->
+            <div class="modal-header border-0">
+                <h4 class=" fw-bold mb-0">Post New Housing Listing</h4 >
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+             <div class="modal-body">
+
+                <p class="text-muted">Add a new housing property.</p>
+
+                <!--Image Upload-->
+                <div class="upload-box mb-4">
+                    <div class="drag-area text-center">
+                        <i class="bi bi-cloud-arrow-up fs-1"></i>
+                        <p>Drag & drop your images here, or click to select files</p>
+                        <small class="text-muted">Up to 5 images (JPG, PNG, GIF)</small>
+                        <input type="file" id="imageUploadInput" multiple accept="image/*" class="form-control mt-3">
+                    </div>
+                </div>
+
+                <!--Form fields-->
+                <form id="propertyForm">
+                    <div class="row g-3">
+
+                        <div class="col-md-12">
+                            <label class="fw-semibold">Property Title*</label>
+                            <input type="text" class="form-control" placeholder="e.g., Student Room Near University" required>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="fw-semibold">Address*</label>
+                            <input type="text" class="form-control" placeholder="Street Address" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-semibold">City*</label>
+                            <input type="text" class="form-control" placeholder="City" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Monthly Rent (KES)*</label>
+                            <input type="number" class="form-control" placeholder="e.g., 5,000" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Property Type*</label>
+                            <select class="form-select" required>
+                                <option value="" disabled selected>Select type</option>
+                                <option>Apartment</option>
+                                <option>House</option>
+                                <option>Studio</option>
+                                <option>Shared Room</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Bedrooms</label>
+                            <input type="number" class="form-control" placeholder="e.g., 2" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Area (sq ft)*</label>
+                            <input type="number" class="form-control" placeholder="950">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Status *</label>
+                            <select class="form-select" required>
+                                <option value="Available">Available</option>
+                                <option value="Reserved">Reserved</option>
+                                <option value="Unavailable">Unavailable</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="fw-semibold">Description</label>
+                            <textarea class="form-control" rows="3" placeholder="Describe your property (ideal for students, distance to campus, etc.)"></textarea>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <label class="fw-semibold d-block">Amenities</label>
+                             <div class="row">
+                                    <div class="col-6 col-md-4"><input type="checkbox"> WiFi</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Kitchen</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Study Desk</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Water Included</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Public Transport</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Parking</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Furnished</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Shared Kitchen</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Electricity Included</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Quiet Area</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> AC</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Washer/Dryer</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Security</div>
+                                    <div class="col-6 col-md-4"><input type="checkbox"> Close to Campus</div>
+                                </div>   
+                            </div>
+                    </div>
+
+                </form>
+
+             </div>
+              <!-- Modal Footer -->
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-dark px-4">Post Listing</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -228,28 +372,127 @@ $totalApproved = $conn->query("SELECT COUNT(*) AS total FROM reservations r JOIN
 
     // Initialize interactive behavior for injected sections (payment toggles, etc.)
     function initializeInjectedContent() {
+        // Payment form toggles (existing behavior)
         const select = document.getElementById('paymentMethodSelect');
-        if (!select) return; // no payment form present
+        if (select) {
+            const bankFields = document.getElementById('bankFields');
+            const mpesaFields = document.getElementById('mpesaFields');
+            const paypalFields = document.getElementById('paypalFields');
+            const cashFields = document.getElementById('cashFields');
 
-        const bankFields = document.getElementById('bankFields');
-        const mpesaFields = document.getElementById('mpesaFields');
-        const paypalFields = document.getElementById('paypalFields');
-        const cashFields = document.getElementById('cashFields');
+            function updatePaymentFields() {
+                const v = select.value;
+                if (bankFields) bankFields.classList.toggle('d-none', v !== 'Bank Transfer');
+                if (mpesaFields) mpesaFields.classList.toggle('d-none', v !== 'M-Pesa');
+                if (paypalFields) paypalFields.classList.toggle('d-none', v !== 'PayPal');
+                if (cashFields) cashFields.classList.toggle('d-none', v !== 'Cash');
 
-        function updatePaymentFields() {
-            const v = select.value;
-            if (bankFields) bankFields.classList.toggle('d-none', v !== 'Bank Transfer');
-            if (mpesaFields) mpesaFields.classList.toggle('d-none', v !== 'M-Pesa');
-            if (paypalFields) paypalFields.classList.toggle('d-none', v !== 'PayPal');
-            if (cashFields) cashFields.classList.toggle('d-none', v !== 'Cash');
+                if (bankFields) document.querySelectorAll('#bankFields input').forEach(i => i.required = (v === 'Bank Transfer'));
+                if (mpesaFields) document.querySelectorAll('#mpesaFields input').forEach(i => i.required = (v === 'M-Pesa'));
+                if (paypalFields) document.querySelectorAll('#paypalFields input').forEach(i => i.required = (v === 'PayPal'));
+            }
 
-            if (bankFields) document.querySelectorAll('#bankFields input').forEach(i => i.required = (v === 'Bank Transfer'));
-            if (mpesaFields) document.querySelectorAll('#mpesaFields input').forEach(i => i.required = (v === 'M-Pesa'));
-            if (paypalFields) document.querySelectorAll('#paypalFields input').forEach(i => i.required = (v === 'PayPal'));
+            select.addEventListener('change', updatePaymentFields);
+            updatePaymentFields();
         }
 
-        select.addEventListener('change', updatePaymentFields);
-        updatePaymentFields();
+        // If the manage_reservations section is injected, wire up its tabs and action forms
+        const tabPill = document.querySelector('.tab-pill');
+        if (tabPill) {
+            // Attach tab click handlers
+            document.querySelectorAll('.tab-pill .nav-link').forEach(tab => {
+                // Avoid double-binding by removing previous listeners using a namespaced handler stored on element
+                if (tab.__manageReservationsBound) return;
+                tab.__manageReservationsBound = true;
+
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const status = this.dataset.status;
+
+                    // Update active state
+                    document.querySelectorAll('.tab-pill .nav-link').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show loading state
+                    const tableSection = document.querySelector('.card.card-table');
+                    if (tableSection) tableSection.style.opacity = '0.5';
+
+                    // Fetch partial HTML for the selected status
+                    fetch(`sections/manage_reservations.php?status=${status}&partial=1`)
+                        .then(res => res.text())
+                        .then(html => {
+                            if (tableSection && html) {
+                                tableSection.outerHTML = html;
+                                // After replacing content, re-run this initializer to bind new elements
+                                initializeInjectedContent();
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching reservations:', err);
+                            if (tableSection) tableSection.style.opacity = '1';
+                        });
+                });
+            });
+
+            // Attach action-form submit handlers (approve/reject)
+            function bindActionForms() {
+                document.querySelectorAll('.action-form').forEach(form => {
+                    if (form.__manageReservationsFormBound) return;
+                    form.__manageReservationsFormBound = true;
+
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(form);
+                        const btn = form.querySelector('button');
+                        const originalText = btn ? btn.innerHTML : '';
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                        }
+
+                        fetch('sections/manage_reservations.php', { method: 'POST', body: formData })
+                            .then(res => res.text())
+                            .then(() => {
+                                // First refresh full section to update counts
+                                return fetch('sections/manage_reservations.php');
+                            })
+                            .then(res => res.text())
+                            .then(html => {
+                                // Replace entire section content to update counts
+                                document.getElementById("content").innerHTML = html;
+                                // Re-bind handlers for newly injected content
+                                initializeInjectedContent();
+                            })
+                            .then(() => {
+                                // Then refresh just the table for current status
+                                const activeTab = document.querySelector('.tab-pill .nav-link.active');
+                                const status = activeTab ? activeTab.dataset.status : 'pending';
+                                return fetch(`sections/manage_reservations.php?status=${status}&partial=1`);
+                            })
+                            .then(res => res.text())
+                            .then(html => {
+                                // Update just the table portion
+                                const tableSection = document.querySelector('.card.card-table');
+                                if (tableSection && html) {
+                                    tableSection.outerHTML = html;
+                                    // Re-bind handlers for new content
+                                    initializeInjectedContent();
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error processing action:', err);
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.innerHTML = originalText;
+                                }
+                                alert('Error processing request. Please try again.');
+                            });
+                    });
+                });
+            }
+
+            bindActionForms();
+        }
     }
 
     // Load section dynamically

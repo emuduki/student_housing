@@ -322,7 +322,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email_new_bookings'])
                 <li class="nav-item" role="presentation">
                     <button class="nav-link fw-semibold" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">Notifications</button>
                 </li>
-            </ul>
+        </ul>
 
 
             <!--Tab Content-->
@@ -335,62 +335,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email_new_bookings'])
                         <div class="col-md-6">
                             <label class="form-label">First Name</label>
                             <input type="text" class="form-control" name="first_name"
-                                value="<?= htmlspecialchars($landlord['first_name'] ?? '') ?>" readonly>
+                                value="<?= htmlspecialchars($landlord['first_name'] ?? '') ?>" >
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Last Name</label>
                         <input type="text" class="form-control" name="last_name"
-                            value="<?= htmlspecialchars($landlord['last_name'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['last_name'] ?? '') ?>" >
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Email Address</label>
                         <input type="email" class="form-control" name="email"
-                            value="<?= htmlspecialchars($landlord['email'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['email'] ?? '') ?>" >
 
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Primary Phone</label>
                         <input type="text" class="form-control" name="phone"
-                            value="<?= htmlspecialchars($landlord['phone'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['phone'] ?? '') ?>" >
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Alternate Phone</label>
                         <input type="text" class="form-control" name="alt_phone"
-                            value="<?= htmlspecialchars($landlord['alt_phone'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['alt_phone'] ?? '') ?>" >
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Address</label>
                         <input type="text" class="form-control" name="address"
-                            value="<?= htmlspecialchars($landlord['address'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['address'] ?? '') ?>" >
                     </div>
 
                     <div class="col-4">
                         <label class="form-label">City</label>
                         <input type="text" class="form-control" name="city"
-                            value="<?= htmlspecialchars($landlord['city'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['city'] ?? '') ?>" >
                     </div>
 
                     <div class="col-4">
                         <label class="form-label">County</label>
                         <input type="text" class="form-control" name="county"
-                            value="<?= htmlspecialchars($landlord['county'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['county'] ?? '') ?>" >
                     </div>
 
                     <div class="col-4">
                         <label class="form-label">Postal Code</label>
                         <input type="text" class="form-control" name="postal_code"
-                            value="<?= htmlspecialchars($landlord['postal_code'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars($landlord['postal_code'] ?? '') ?>" >
                     </div>
 
                     <div class="col-12">
                         <label class="form-label">About Me</label>
-                        <textarea class="form-control" name="about_me" rows="3"
-                            readonly><?= htmlspecialchars($landlord['about_me'] ?? '') ?></textarea>
+                        <textarea class="form-control" name="about_me" rows="3">
+                            <?= htmlspecialchars($landlord['about_me'] ?? '') ?></textarea>
                     </div>
 
                     </div>
@@ -411,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email_new_bookings'])
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-building"></i></span>
                                     <input type="text" class="form-control" name="business_name"
-                                    value="<?= htmlspecialchars($landlord['business_name'] ?? '') ?>" readonly>
+                                    value="<?= htmlspecialchars($landlord['business_name'] ?? '') ?>" >
                                 </div>       
                             </div>
 
@@ -421,7 +421,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email_new_bookings'])
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-0"><i class="bi bi-file-earmark-text"></i></span>
                                     <input type="text" class="form-control" name="tax_id"
-                                    value="<?= htmlspecialchars($landlord['tax_id'] ?? '') ?>" readonly>
+                                    value="<?= htmlspecialchars($landlord['tax_id'] ?? '') ?>" >
                                 </div>
                             </div>
 
@@ -431,7 +431,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email_new_bookings'])
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-0"><i class="bi bi-123"></i></span>
                                     <input type="text" class="form-control" name="registration_number"
-                                    value="<?= htmlspecialchars($landlord['registration_number'] ?? '') ?>" readonly>
+                                    value="<?= htmlspecialchars($landlord['registration_number'] ?? '') ?>" >
                                 </div>
                             </div>
                         </div>

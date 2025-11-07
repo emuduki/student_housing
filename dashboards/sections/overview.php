@@ -2,7 +2,7 @@
 session_start();
 include("../../config/db.php");
 
-// ✅ Role normalization
+//  Role normalization
 $role = strtolower(trim($_SESSION["role"] ?? ''));
 if ($role !== 'landlord') {
     header("Location: ../auth/login.html");

@@ -2,17 +2,13 @@
 session_start();
 include("../config/db.php");
 
-// ✅ Role normalization
+// Role normalization
 $role = strtolower(trim($_SESSION["role"] ?? ''));
 if ($role !== 'admin') {
     header("Location: ../login.html");
     exit();
 }
 
-// Fetch counts
-$totalHouses = $conn->query("SELECT COUNT(*) AS total FROM houses")->fetch_assoc()['total'];
-$totalReservations = $conn->query("SELECT COUNT(*) AS total FROM reservations")->fetch_assoc()['total'];
-$totalLandlords = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='landlord'")->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
@@ -21,48 +17,136 @@ $totalLandlords = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <style>
     body { min-height: 100vh; display: flex; flex-direction: column; }
 
+    .navbar{
+        z-index: 1100;
+    }
+
     /* Sidebar */
     .sidebar {
-        min-width: 200px;
-        max-width: 200px;
-        background-color: #343a40; /* darker shade than navbar */
-        color: white;
-        display: flex;
-        flex-direction: column;
-        padding: 20px;
+        min-width: 260px;
+        background-color: #ffffff; /* darker shade than navbar */
+        padding-top: 6px 0;           /* reduced padding to fit everything */
+        height: calc(100vh - 56px); /* full height minus navbar */
         position: fixed;
-        top: 56px; /* height of navbar */
+        z-index: 1000;
+        top: 56px; /* same height as navbar */
         left: 0;
         bottom: 0;
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;       /* ensure no scrollbar */
+        border-right: 1px solid #dee2e6;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
     }
-    .sidebar a {
-        color: white;
+        /* When collapsed */
+    .sidebar.collapsed {
+        margin-left: -280px;
+    }
+    .sidebar .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #12be82;
+        margin-bottom: 10px;
+    }
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* keep items stacked without large gaps */
+        gap: 10px; /* slightly larger vertical gap between items */
+        padding-top: 18px; /* increase top padding slightly for balance */
+    }
+    .sidebar ul li {
+        margin: 0 8px; /* horizontal padding between link and sidebar edges */
+    }
+    .sidebar ul li a {
+        display: flex;
+        align-items: center;
+        padding: 7px 10px; /*smaller height */
         text-decoration: none;
-        display: block;
-        padding: 12px 10px;
-        margin-bottom: 5px;
-        border-radius: 4px;
-        font-weight: 300;
-    }
-    .sidebar a:hover { background-color: #495057; }
+        color: #212529;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.25s ease;
+        position: relative;
+        }
 
-    /* Main content */
-    .main-content {
-        margin-left: 200px;
-        padding: 20px;
-        margin-top: 10px;
-        width: calc(100% - 200px);
-    }
+        .sidebar ul li a:hover {
+        background-color: #f2f2f2;
+        color: #12be82;
+        }
+    
+        .sidebar ul li a.active {
+        background-color: #000;
+        color: #fff !important;
+        font-weight: 600;
+        }
+        .sidebar .badge {
+        font-size: 0.75rem;
+        border-radius: 10px;
+        padding: 3px 7px;
+        position: absolute;
+        right: 12px;
+        }
 
-    .card-hover:hover {
-        transform: translateY(-5px);
-        transition: 0.3s;
-    }
+        .bottom-section {
+        border-top: 1px solid #e9ecef;
+        padding: 10px 15px;
+        background-color: #fff;
+        flex-shrink: 0; /* Prevent it from being pushed offscreen */
+        margin-bottom: 18px; /* lift the bottom section slightly above the viewport bottom */
+        }
+
+        .bottom-section .d-flex {
+            align-items: center;
+        }
+
+        .bottom-section a {
+            text-decoration: none;
+            color: #000;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .bottom-section a:hover {
+            color: #12be82;
+        }
+        /* Logout Button Styling */
+        .bottom-section .btn {
+            background-color: #fff;         /* black background */
+            color: #000;                    /* white text */
+            border-radius: 8px;             /* smooth corners */
+            padding: 6px 0;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .bottom-section .btn:hover {
+            background-color: #555;      /* green hover */
+            color: #fff;
+            transform: translateY(-1px);    /* subtle lift effect */
+        }
+
+        .bottom-section .btn i {
+            font-size: 1rem;
+        }
+    
 
     @media (max-width: 768px) {
         .sidebar {
@@ -81,81 +165,90 @@ $totalLandlords = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='
 </head>
 <body class="bg-light">
 
-<!-- ✅ Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="#">🏠 Student Housing Admin</a>
+<!--  Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+
+        <!--- Left section: toggle + title -->
         <div class="d-flex align-items-center">
-            <span class="me-3 text-light">Role: <strong><?= ucfirst($role) ?></strong></span>
-            <a href="../auth/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
+            <button class="btn btn-outline-secondary me-3" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <a class="navbar-brand fw-bold text-dark" href="#">Admin Panel</a>
         </div>
+        
+        <!-- Right section: notification bell -->
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light position-relative me-2">
+                <i class="bi bi-bell fs-5"></i>
+                <!-- Optional: red dot for unread notifications -->
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+            </button>
+        </div>
+
     </div>
 </nav>
 
-<!-- ✅ Sidebar -->
-<div class="sidebar">
-    <a href="../houses/add_house.php"> Add House</a>
-    <a href="../houses/houses.php"> Manage Houses</a>
-    <a href="../houses/manage_reservations.php">Manage Reservations</a>
-    <a href="../users/manage_landlords.php"> Manage Landlords</a>
-    <a href="../users/manage_students.php"> Manage Students</a>
+<!--  Sidebar -->
+<div class="sidebar" id="sidebar">
+    <ul class="nav flex-column mt-4">
+        <li><a href="javascript:void(0);" class="active" onclick="loadSection('dashboard', this)"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <li><a href="javascript:void(0);"  onclick="loadSection('users', this)"><i class="bi bi-people me-2"></i>Users</a></li>
+        <li><a href="javascript:void(0);"  onclick="loadSection('properties', this)"><i class="bi bi-building me-2"></i>Properties</a></li>
+        <li><a href="javascript:void(0);"  onclick="loadSection('bookings', this)"><i class="bi bi-calendar-check me-2"></i>Bookings</a></li>
+        <li><a href="javascript:void(0);"  onclick="loadSection('financials', this)"><i class="bi bi-cash-stack me-2"></i>Financial</a></li>
+        <li><a href="javascript:void(0);"  onclick="loadSection('support', this)"><i class="bi bi-chat-dots me-2"></i>support</a></li>
+        <li><a href="javascript:void(0);" onclick="loadSection('settings', this)"><i class="bi bi-gear me-2"></i>Settings</a></li>
+    </ul>
+
+    <div class="bottom-section">
+        <div class="d-flex align-items-center mb-2">
+            <i class="bi bi-person-circle fs-4 me-2"></i>
+            <div>
+                <strong>Admin</strong><br>
+                <small class="text-muted"><?= htmlspecialchars($_SESSION['username'] ?? 'Admin') ?></small>
+            </div>
+        </div>
+        <a href="../logout.php" class="btn btn-dark w-100 d-flex  align-items-center justify-content-center">
+            <i class="bi bi-box-arrow-right me-1"></i>Logout
+        </a>
+    </div>
+    
 </div>
 
-<!-- ✅ Main Content -->
-<div class="main-content">
-
-
-    <!-- Welcome Card -->
-    <div class="alert alert-primary text-center shadow-sm">
-        <h2>Welcome, Admin!</h2>
-        <p>You are logged in to your dashboard.</p>
-    </div>
-
-    <!-- Dashboard Cards -->
-    <div class="row text-center g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card card-hover shadow-sm bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Houses</h5>
-                    <p class="card-text fs-4"><?= $totalHouses ?></p>
-                    <a href="../houses/houses.php" class="btn btn-light btn-sm">Manage Houses</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-hover shadow-sm bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Reservations</h5>
-                    <p class="card-text fs-4"><?= $totalReservations ?></p>
-                    <a href="../houses/manage_reservations.php" class="btn btn-light btn-sm">Manage Reservations</a>
-                    <!--<a href="../houses/manage_reservations.php?status=pending" class="btn btn-light btn-sm ms-2">View Pending</a>-->
-                    <!--<a href="../houses/manage_reservations.php?status=approved" class="btn btn-light btn-sm ms-2">View Approved</a>-->
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-hover shadow-sm bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">Landlords</h5>
-                    <p class="card-text fs-4"><?= $totalLandlords ?></p>
-                    <a href="../users/manage_landlords.php" class="btn btn-dark btn-sm">Manage Landlords</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Quick Actions -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            Quick Actions
-        </div>
-        <div class="card-body">
-            <p>Use the buttons above to quickly manage houses, reservations, and landlords. Everything you need at a glance!</p>
-        </div>
-    </div>
-
+<!-- Main Content -->
+<div class="main-content" id="content">
+    <!--Loaded dynamically-->
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const toggle = document.getElementById("sidebarToggle");
+
+  toggle.addEventListener("click", () => {
+    sidebar.classList.toggle("collapsed");
+    document.querySelector(".main-content").classList.toggle("collapsed");
+  });
+
+  window.loadSection = function(section, el = null) {
+    fetch(`sections/${section}.php`)
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("content").innerHTML = html;
+        document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+        if (el) el.classList.add("active");
+      })
+      .catch(err => console.error("Error loading section:", err));
+  };
+
+  // Default section load
+  loadSection("dashboard");
+});
+</script>
 
 </body>
 </html>
